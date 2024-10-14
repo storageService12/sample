@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dropbox File Management</title>
+    <script src="https://unpkg.com/dropbox/dist/Dropbox-sdk.min.js"></script>
+</head>
+<body>
+    <h2>Dropbox File Management</h2>
+
+    <!-- File Upload -->
+    <h3>Upload File</h3>
+    <input type="file" id="fileInput">
+    <button id="upload-btn">Upload</button>
+
+    <!-- File Download -->
+    <h3>Download File</h3>
+    <input type="text" id="uploaded-file-name" placeholder="Enter file name to download">
+    <button id="download-btn">Download</button>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize Dropbox with access token
+            const dbx = new Dropbox.Dropbox({ accessToken: 'sl.B-sRjJxc-6hgYHosE8aQSx-Xd8itBgY_3a4ZZwC0_nP7L4YezuIFT9v177I1CtKVbl7YLP9eWJbvWiVSPddqxqOZ2b2FnNVtnx4ClcgzhXVCTQn2cpT9n3kwgaYHlFvLrbqGjZUpFtpY' });
+
+            // Upload file
+            document.getElementById('upload-btn').addEventListener('click', async () => {
+                const file = document.getElementById('fileInput').files[0];
+                if (file) {
+                    try {
+                        const response = await dbx.filesUpload({ path: '/uploads/' + file.name, contents: file });
+                        alert('File uploaded successfully!');
+                    } catch (error) {
+                        alert('Error uploading file: ' + (error.error ? JSON.stringify(error.error) : error.message));
+                    }
+                }
+            });
+
+            // Download file
+            document.getElementById('download-btn').addEventListener('click', async () => {
+                const fileName = document.getElementById('uploaded-file-name').value;
+                if (!fileName) {
+                    alert('No file name provided for download.');
+                    return;
+                }
+
+                const filePath = '/uploads/' + fileName;  // Ensure correct path
+
+                try {
+                    const response = await dbx.filesDownload({ path: filePath });
+                    const blob = response.result.fileBlob;
+                    const downloadUrl = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = downloadUrl;
+                    a.download = fileName;
+                    a.click();
+                    URL.revokeObjectURL(downloadUrl);  // Clean up URL
+                } catch (error) {
+                    alert('Error downloading file: ' + (error.error ? JSON.stringify(error.error) : error.message));
+                }
+            });
+        });
+    </script>
+</body>
+</html>
